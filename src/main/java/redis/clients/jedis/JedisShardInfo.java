@@ -15,64 +15,26 @@
  */
 package redis.clients.jedis;
 
-import redis.clients.util.ShardInfo;
-import redis.clients.util.Sharded;
-
-public class JedisShardInfo extends ShardInfo<Jedis> {
-    public String toString() {
-        return host + ":" + port + "*" + getWeight();
-    }
-
-    private int timeout;
-    private String host;
-    private int port;
-    private String password = null;
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
+public class JedisShardInfo extends ConnetionShardInfo<Jedis> {
+  
     public JedisShardInfo(String host) {
-        this(host, Protocol.DEFAULT_PORT);
+        super(host);
     }
 
     public JedisShardInfo(String host, int port) {
-        this(host, port, 2000);
+      super(host, port);
     }
 
     public JedisShardInfo(String host, int port, int timeout) {
-        this(host, port, timeout, Sharded.DEFAULT_WEIGHT);
+      super(host, port, timeout);
     }
-
+    
     public JedisShardInfo(String host, int port, int timeout, int weight) {
-        super(weight);
-        this.host = host;
-        this.port = port;
-        this.timeout = timeout;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String auth) {
-        this.password = auth;
-    }
-
-    public int getTimeout() {
-        return timeout;
-    }
-
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+        super(host, port, timeout, weight);
     }
 
     @Override
     public Jedis createResource() {
-        return new Jedis(this);
+        return new Jedis(this.getHost(), this.getPort(), this.getTimeout(), this.getPassword());
     }
 }

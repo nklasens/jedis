@@ -30,10 +30,15 @@ public class BinaryJedis implements BinaryJedisCommands {
         client.setTimeout(timeout);
     }
 
-    public BinaryJedis(final JedisShardInfo shardInfo) {
-        client = new Client(shardInfo.getHost(), shardInfo.getPort());
-        client.setTimeout(shardInfo.getTimeout());
-        client.setPassword(shardInfo.getPassword());
+    public BinaryJedis(final String host, final int port, String password) {
+      client = new Client(host, port);
+      client.setPassword(password);
+    }
+    
+    public BinaryJedis(final String host, final int port, final int timeout, String password) {
+      client = new Client(host, port);
+      client.setTimeout(timeout);
+      client.setPassword(password);
     }
 
     public String ping() {

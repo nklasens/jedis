@@ -36,10 +36,6 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo>
         }
     }
 
-    protected Jedis create(JedisShardInfo shard) {
-        return new Jedis(shard);
-    }
-
     public String set(byte[] key, byte[] value) {
         Jedis j = getShard(key);
         return j.set(key, value);
@@ -393,11 +389,5 @@ public class BinaryShardedJedis extends Sharded<Jedis, JedisShardInfo>
             byte[] value) {
         Jedis j = getShard(key);
         return j.linsert(key, where, pivot, value);
-    }
-
-    public List<Object> pipelined(ShardedJedisPipeline shardedJedisPipeline) {
-        shardedJedisPipeline.setShardedJedis(this);
-        shardedJedisPipeline.execute();
-        return shardedJedisPipeline.getResults();
     }
 }

@@ -2,7 +2,6 @@ package redis.clients.jedis;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
-import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
 import redis.clients.util.Pool;
 
@@ -15,11 +14,11 @@ public class JedisPool extends Pool<Jedis> {
     }
 
     public JedisPool(String host, int port) {
-        super(new Config(), new JedisFactory(host, port,
+        super(new GenericObjectPool.Config(), new JedisFactory(host, port,
                 Protocol.DEFAULT_TIMEOUT, null));
     }
 
-    public JedisPool(final Config poolConfig, final String host, int port,
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, int port,
             int timeout, final String password) {
         super(poolConfig, new JedisFactory(host, port, timeout, password));
     }
@@ -55,15 +54,12 @@ public class JedisPool extends Pool<Jedis> {
         public Object makeObject() throws Exception {
             final Jedis jedis;
             if (timeout > 0) {
-                jedis = new Jedis(this.host, this.port, this.timeout);
+                jedis = new Jedis(this.host, this.port, this.timeout, this.password);
             } else {
-                jedis = new Jedis(this.host, this.port);
+                jedis = new Jedis(this.host, this.port, this.password);
             }
 
             jedis.connect();
-            if (null != this.password) {
-                jedis.auth(this.password);
-            }
             return jedis;
         }
 

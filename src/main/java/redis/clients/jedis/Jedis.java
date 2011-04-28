@@ -23,8 +23,12 @@ public class Jedis extends BinaryJedis implements JedisCommands {
         super(host, port, timeout);
     }
 
-    public Jedis(JedisShardInfo shardInfo) {
-        super(shardInfo);
+    public Jedis(String host, int port, String password) {
+      super(host, port, password);
+    }
+
+    public Jedis(String host, int port, int timeout, String password) {
+      super(host, port, timeout, password);
     }
 
     public String ping() {
@@ -71,7 +75,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
 
     public void quit() {
         checkIsInMulti();
-        client.quit();
+        if (client.isConnected()) {
+          client.quit();
+        }
     }
 
     /**

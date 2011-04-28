@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.regex.Pattern;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
+import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Hashing;
 
 public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
@@ -28,10 +29,28 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
     }
 
     public void disconnect() {
+        Exception lastException = null;
         for (Jedis jedis : getAllShards()) {
-            jedis.quit();
-            jedis.disconnect();
+          try {
+            try {
+              jedis.quit();
+              } catch (Exception e) {
+                lastException = e;
+              }
+              jedis.disconnect();
+          } catch (Exception e) {
+            lastException = e;
+          }
         }
+        if (lastException != null) {
+          throw new JedisException("Could not disconnect all shards", lastException);
+        }
+    }
+
+    public List<Object> pipelined(ShardedJedisPipeline shardedJedisPipeline) {
+        shardedJedisPipeline.setShardedJedis(this);
+        shardedJedisPipeline.execute();
+        return shardedJedisPipeline.getResults();
     }
 
     public String set(String key, String value) {

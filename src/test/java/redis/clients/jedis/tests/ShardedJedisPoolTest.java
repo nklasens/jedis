@@ -31,14 +31,12 @@ public class ShardedJedisPoolTest extends Assert {
         shards.add(new JedisShardInfo(redis2.host, redis2.port));
         shards.get(0).setPassword("foobared");
         shards.get(1).setPassword("foobared");
-        Jedis j = new Jedis(shards.get(0));
-        j.connect();
-        j.flushAll();
-        j.disconnect();
-        j = new Jedis(shards.get(1));
-        j.connect();
-        j.flushAll();
-        j.disconnect();
+        ShardedJedis sj = new ShardedJedis(shards);
+        for (Jedis j : sj.getAllShards()) {
+          j.connect();
+          j.flushAll();
+          j.disconnect();
+        }
     }
 
     @Test
