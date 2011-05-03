@@ -3,6 +3,8 @@ package redis.clients.jedis;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.apache.commons.pool.impl.GenericObjectPool;
+
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
 import redis.clients.util.Hashing;
@@ -12,28 +14,36 @@ public class ShardedPool extends Sharded<JedisPool, JedisPoolShardInfo> {
 
   private Map<ConnectionInfo,JedisPoolShardInfo> shardInfoLookup = new HashMap<ConnectionInfo, JedisPoolShardInfo>();
   
-  public ShardedPool(List<JedisPoolShardInfo> shards) {
-    super(shards);
-    initLookup(shards);
+  public ShardedPool(GenericObjectPool.Config poolConfig, List<JedisShardInfo> shards) {
+    super(createPooledShards(poolConfig, shards));
+    initLookup();
   }
 
-  public ShardedPool(List<JedisPoolShardInfo> shards, Hashing algo) {
-    super(shards, algo);
-    initLookup(shards);
+  public ShardedPool(GenericObjectPool.Config poolConfig, List<JedisShardInfo> shards, Hashing algo) {
+    super(createPooledShards(poolConfig, shards), algo);
+    initLookup();
   }
 
-  public ShardedPool(List<JedisPoolShardInfo> shards, Pattern tagPattern) {
-    super(shards, tagPattern);
-    initLookup(shards);
+  public ShardedPool(GenericObjectPool.Config poolConfig, List<JedisShardInfo> shards, Pattern tagPattern) {
+    super(createPooledShards(poolConfig, shards), tagPattern);
+    initLookup();
   }
 
-  public ShardedPool(List<JedisPoolShardInfo> shards, Hashing algo, Pattern tagPattern) {
-    super(shards, algo, tagPattern);
-    initLookup(shards);
+  public ShardedPool(GenericObjectPool.Config poolConfig, List<JedisShardInfo> shards, Hashing algo, Pattern tagPattern) {
+    super(createPooledShards(poolConfig, shards), algo, tagPattern);
+    initLookup();
   }
 
-  private void initLookup(List<JedisPoolShardInfo> shards) {
-    for (JedisPoolShardInfo shardInfo : shards) {
+  private static List<JedisPoolShardInfo> createPooledShards(GenericObjectPool.Config poolConfig,  List<JedisShardInfo> shards) {
+    List<JedisPoolShardInfo> pooledShards = new ArrayList<JedisPoolShardInfo>(shards.size()); 
+    for(JedisShardInfo shardInfo : shards){
+      pooledShards.add(new JedisPoolShardInfo(shardInfo, poolConfig));
+    }
+    return pooledShards;
+  }
+
+  private void initLookup() {
+    for (JedisPoolShardInfo shardInfo : getAllShardInfo()) {
       shardInfoLookup.put(shardInfo.getConnectionInfo(), shardInfo);
     }
   }

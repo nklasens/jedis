@@ -1,49 +1,58 @@
 package redis.clients.jedis;
 
-import org.apache.commons.pool.impl.GenericObjectPool;
 import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
-public class JedisPoolShardInfo extends ConnetionShardInfo<JedisPool> {
+import redis.clients.util.ShardInfo;
+
+public class JedisPoolShardInfo extends ShardInfo<JedisPool>{
+
+  private final JedisShardInfo shardInfo;
+  private final Config poolConfig;
   
-    private GenericObjectPool.Config poolConfig;
-
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig,
-          final String host) {
-      this(poolConfig, new ConnectionInfo(host));
-    }
+  public JedisPoolShardInfo(JedisShardInfo shardInfo, Config poolConfig){
+    super(shardInfo.getWeight());
+    if((shardInfo == null) || (poolConfig == null)){
+      throw new IllegalArgumentException("Can not be null");
+    } 
     
-    public JedisPoolShardInfo(String host, int port) {
-      this(new GenericObjectPool.Config(), host, port);
-    }
-    
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, final String host, final int port) {
-      this(poolConfig, new ConnectionInfo(host, port));
-    }
-    
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, final String host, int port, int timeout) {
-      this(poolConfig, new ConnectionInfo(host, port, timeout));
-    }
-
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, String host, int port, int timeout, int weight) {
-      this(poolConfig, new ConnectionInfo(host, port, timeout), weight);
-    }
-
-    public JedisPoolShardInfo(Config poolConfig, ConnectionInfo connectionInfo) {
-      super(connectionInfo);
-      this.poolConfig = poolConfig;
-    }
-
-    public JedisPoolShardInfo(Config poolConfig, ConnectionInfo connectionInfo, int weight) {
-      super(connectionInfo, weight);
-      this.poolConfig = poolConfig;
-    }
-
-    public GenericObjectPool.Config getPoolConfig() {
-      return poolConfig;
-    }
+    this.shardInfo = shardInfo;
+    this.poolConfig = poolConfig;
+  }
   
-    @Override
-    protected JedisPool createResource() {
-        return new JedisPool(this.getPoolConfig(), this.getConnectionInfo());
+  public JedisShardInfo getShardInfo() {
+    return shardInfo;
+  }
+
+  public ConnectionInfo getConnectionInfo() {
+    return shardInfo.getConnectionInfo();
+  }
+
+  @Override
+  protected JedisPool createResource() {
+    return new JedisPool(poolConfig, shardInfo.getConnectionInfo());
+  }
+
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + shardInfo.hashCode();
+    return result;
+  }
+
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj)
+      return true;
+    if (obj == null)
+      return false;
+    if (getClass() != obj.getClass())
+      return false;
+    JedisPoolShardInfo other = (JedisPoolShardInfo) obj;
+    if (shardInfo != other.shardInfo) {
+      return false;
     }
+    return true;
+  }
+  
 }

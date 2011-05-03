@@ -15,30 +15,48 @@
  */
 package redis.clients.jedis;
 
-public class JedisShardInfo extends ConnetionShardInfo<Jedis> {
+import redis.clients.util.ShardInfo;
+import redis.clients.util.Sharded;
+
+public class JedisShardInfo extends ShardInfo<Jedis> {
   
+    private ConnectionInfo connectionInfo;
+
     public JedisShardInfo(String host) {
-        super(new ConnectionInfo(host));
+        this(new ConnectionInfo(host));
     }
 
     public JedisShardInfo(String host, int port) {
-      super(new ConnectionInfo(host, port));
+      this(new ConnectionInfo(host, port));
     }
 
     public JedisShardInfo(String host, int port, String password) {
-      super(new ConnectionInfo(host, port, password));
+      this(new ConnectionInfo(host, port, password));
     }
     
     public JedisShardInfo(String host, int port, int timeout) {
-      super(new ConnectionInfo(host, port, timeout));
+      this(new ConnectionInfo(host, port, timeout));
     }
     
     public JedisShardInfo(String host, int port, int timeout, int weight) {
-        super(new ConnectionInfo(host, port, timeout), weight);
+      this(new ConnectionInfo(host, port, timeout), weight);
+    }
+
+    public JedisShardInfo(ConnectionInfo connectionInfo) {
+      this(connectionInfo, Sharded.DEFAULT_WEIGHT);
+    }
+
+    public JedisShardInfo(ConnectionInfo connectionInfo, int weight) {
+      super(weight);
+      this.connectionInfo = connectionInfo;
     }
 
     @Override
     public Jedis createResource() {
         return new Jedis(this.getConnectionInfo());
+    }
+    
+    public ConnectionInfo getConnectionInfo() {
+      return connectionInfo;
     }
 }
