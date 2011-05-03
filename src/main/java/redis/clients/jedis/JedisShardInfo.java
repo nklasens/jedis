@@ -18,23 +18,27 @@ package redis.clients.jedis;
 public class JedisShardInfo extends ConnetionShardInfo<Jedis> {
   
     public JedisShardInfo(String host) {
-        super(host);
+        super(new ConnectionInfo(host));
     }
 
     public JedisShardInfo(String host, int port) {
-      super(host, port);
+      super(new ConnectionInfo(host, port));
     }
 
+    public JedisShardInfo(String host, int port, String password) {
+      super(new ConnectionInfo(host, port, password));
+    }
+    
     public JedisShardInfo(String host, int port, int timeout) {
-      super(host, port, timeout);
+      super(new ConnectionInfo(host, port, timeout));
     }
     
     public JedisShardInfo(String host, int port, int timeout, int weight) {
-        super(host, port, timeout, weight);
+        super(new ConnectionInfo(host, port, timeout), weight);
     }
 
     @Override
     public Jedis createResource() {
-        return new Jedis(this.getHost(), this.getPort(), this.getTimeout(), this.getPassword());
+        return new Jedis(this.getConnectionInfo());
     }
 }

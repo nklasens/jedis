@@ -5,52 +5,43 @@ import redis.clients.util.Sharded;
 
 public abstract class ConnetionShardInfo<T> extends ShardInfo<T> {
 
-    public String toString() {
-      return host + ":" + port + "*" + getWeight();
+    private ConnectionInfo connectionInfo;
+
+    public ConnetionShardInfo(ConnectionInfo connectionInfo) {
+      this(connectionInfo, Sharded.DEFAULT_WEIGHT);
     }
     
-    private final int timeout;
-    private final String host;
-    private final int port;
-    private String password = null;
-    
-    public String getHost() {
-        return host;
-    }
-    
-    public int getPort() {
-        return port;
-    }
-    
-    public ConnetionShardInfo(String host) {
-        this(host, Protocol.DEFAULT_PORT);
-    }
-    
-    public ConnetionShardInfo(String host, int port) {
-        this(host, port, 2000);
-    }
-    
-    public ConnetionShardInfo(String host, int port, int timeout) {
-        this(host, port, timeout, Sharded.DEFAULT_WEIGHT);
-    }
-    
-    public ConnetionShardInfo(String host, int port, int timeout, int weight) {
-        super(weight);
-        this.host = host;
-        this.port = port;
-        this.timeout = timeout;
-    }
-    
-    public String getPassword() {
-        return password;
-    }
-    
-    public void setPassword(String auth) {
-        this.password = auth;
-    }
-    
-    public int getTimeout() {
-        return timeout;
+    public ConnetionShardInfo(ConnectionInfo connectionInfo, int weight) {
+      super(weight);
+      this.connectionInfo = connectionInfo;
     }
 
+    public ConnectionInfo getConnectionInfo() {
+      return connectionInfo;
+    }
+
+    @Override
+    public int hashCode() {
+      final int prime = 31;
+      int result = 1;
+      result = prime * result + ((connectionInfo == null) ? 0 : connectionInfo.hashCode());
+      return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      ConnetionShardInfo<?> other = (ConnetionShardInfo<?>) obj;
+      if (connectionInfo == null) {
+        if (other.connectionInfo != null)
+          return false;
+      } else if (!connectionInfo.equals(other.connectionInfo))
+        return false;
+      return true;
+    }
 }

@@ -21,11 +21,9 @@ public class HashingBenchmark {
     public static void main(String[] args) throws UnknownHostException,
             IOException {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo shard = new JedisShardInfo(hnp1.host, hnp1.port);
-        shard.setPassword("foobared");
+        JedisShardInfo shard = new JedisShardInfo(hnp1.host, hnp1.port, "foobared");
         shards.add(shard);
-        shard = new JedisShardInfo(hnp2.host, hnp2.port);
-        shard.setPassword("foobared");
+        shard = new JedisShardInfo(hnp2.host, hnp2.port, "foobared");
         shards.add(shard);
         ShardedJedis jedis = new ShardedJedis(shards);
         Collection<Jedis> allShards = jedis.getAllShards();

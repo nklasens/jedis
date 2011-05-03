@@ -53,11 +53,9 @@ public class ShardedJedisTest extends Assert {
     @Test
     public void trySharding() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port);
-        si.setPassword("foobared");
+        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port, "foobared");
         shards.add(si);
-        si = new JedisShardInfo(redis2.host, redis2.port);
-        si.setPassword("foobared");
+        si = new JedisShardInfo(redis2.host, redis2.port, "foobared");
         shards.add(si);
         ShardedJedis jedis = new ShardedJedis(shards);
         jedis.set("a", "bar");
@@ -66,12 +64,12 @@ public class ShardedJedisTest extends Assert {
         JedisShardInfo s2 = jedis.getShardInfo("b");
         jedis.disconnect();
 
-        Jedis j = new Jedis(s1.getHost(), s1.getPort());
+        Jedis j = new Jedis(s1.getConnectionInfo());
         j.auth("foobared");
         assertEquals("bar", j.get("a"));
         j.disconnect();
 
-        j = new Jedis(s2.getHost(), s2.getPort());
+        j = new Jedis(s2.getConnectionInfo());
         j.auth("foobared");
         assertEquals("bar1", j.get("b"));
         j.disconnect();
@@ -80,11 +78,9 @@ public class ShardedJedisTest extends Assert {
     @Test
     public void tryShardingWithMurmure() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port);
-        si.setPassword("foobared");
+        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port, "foobared");
         shards.add(si);
-        si = new JedisShardInfo(redis2.host, redis2.port);
-        si.setPassword("foobared");
+        si = new JedisShardInfo(redis2.host, redis2.port, "foobared");
         shards.add(si);
         ShardedJedis jedis = new ShardedJedis(shards, Hashing.MURMUR_HASH);
         jedis.set("a", "bar");
@@ -93,12 +89,12 @@ public class ShardedJedisTest extends Assert {
         JedisShardInfo s2 = jedis.getShardInfo("b");
         jedis.disconnect();
 
-        Jedis j = new Jedis(s1.getHost(), s1.getPort());
+        Jedis j = new Jedis(s1.getConnectionInfo());
         j.auth("foobared");
         assertEquals("bar", j.get("a"));
         j.disconnect();
 
-        j = new Jedis(s2.getHost(), s2.getPort());
+        j = new Jedis(s2.getConnectionInfo());
         j.auth("foobared");
         assertEquals("bar1", j.get("b"));
         j.disconnect();
@@ -143,10 +139,8 @@ public class ShardedJedisTest extends Assert {
     @Test
     public void shardedPipeline() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        shards.add(new JedisShardInfo(redis1.host, redis1.port));
-        shards.add(new JedisShardInfo(redis2.host, redis2.port));
-        shards.get(0).setPassword("foobared");
-        shards.get(1).setPassword("foobared");
+        shards.add(new JedisShardInfo(redis1.host, redis1.port, "foobared"));
+        shards.add(new JedisShardInfo(redis2.host, redis2.port, "foobared"));
         ShardedJedis jedis = new ShardedJedis(shards);
 
         final List<String> keys = getKeysDifferentShard(jedis);
@@ -185,7 +179,7 @@ public class ShardedJedisTest extends Assert {
         for (int i = 0; i < 1000; i++) {
             JedisShardInfo jedisShardInfo = sharded.getShardInfo(Integer
                     .toString(i));
-            switch (jedisShardInfo.getPort()) {
+            switch (jedisShardInfo.getConnectionInfo().getPort()) {
             case 6379:
                 shard_6379++;
                 break;
@@ -220,7 +214,7 @@ public class ShardedJedisTest extends Assert {
         for (int i = 0; i < 1000; i++) {
             JedisShardInfo jedisShardInfo = sharded.getShardInfo(Integer
                     .toString(i));
-            switch (jedisShardInfo.getPort()) {
+            switch (jedisShardInfo.getConnectionInfo().getPort()) {
             case 6379:
                 shard_6379++;
                 break;

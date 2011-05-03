@@ -10,7 +10,7 @@ import redis.clients.util.Sharded;
 
 public class ShardedPool extends Sharded<JedisPool, JedisPoolShardInfo> {
 
-  private Map<String,JedisPoolShardInfo> shardInfoLookup = new HashMap<String, JedisPoolShardInfo>();
+  private Map<ConnectionInfo,JedisPoolShardInfo> shardInfoLookup = new HashMap<ConnectionInfo, JedisPoolShardInfo>();
   
   public ShardedPool(List<JedisPoolShardInfo> shards) {
     super(shards);
@@ -34,7 +34,7 @@ public class ShardedPool extends Sharded<JedisPool, JedisPoolShardInfo> {
 
   private void initLookup(List<JedisPoolShardInfo> shards) {
     for (JedisPoolShardInfo shardInfo : shards) {
-      shardInfoLookup.put(shardInfo.getHost() + ":" + shardInfo.getPort(), shardInfo);
+      shardInfoLookup.put(shardInfo.getConnectionInfo(), shardInfo);
     }
   }
 
@@ -75,7 +75,7 @@ public class ShardedPool extends Sharded<JedisPool, JedisPoolShardInfo> {
   }
 
   protected JedisPool findPool(Jedis resource) {
-    JedisPoolShardInfo shardInfo = shardInfoLookup.get(resource.getClient().getHost() + ":" + resource.getClient().getPort());
+    JedisPoolShardInfo shardInfo = shardInfoLookup.get(resource.getClient().getConnectionInfo());
     if (shardInfo == null) {
       throw new JedisException("Could not find pool. ");
     }

@@ -15,23 +15,23 @@ import redis.clients.util.RedisOutputStream;
 import redis.clients.util.SafeEncoder;
 
 public class Connection {
-    private String host;
-    private int port = Protocol.DEFAULT_PORT;
+  
+    private ConnectionInfo connectionInfo;
     private Socket socket;
     private Protocol protocol = new Protocol();
     private RedisOutputStream outputStream;
     private RedisInputStream inputStream;
     private int pipelinedCommands = 0;
-    private int timeout = Protocol.DEFAULT_TIMEOUT;
 
-    public int getTimeout() {
-        return timeout;
+    public Connection(final ConnectionInfo connectionInfo) {
+        super();
+        this.connectionInfo = connectionInfo;
     }
 
-    public void setTimeout(final int timeout) {
-        this.timeout = timeout;
+    public ConnectionInfo getConnectionInfo() {
+      return connectionInfo;
     }
-
+    
     public void setTimeoutInfinite() {
         try {
             socket.setSoTimeout(0);
@@ -42,15 +42,10 @@ public class Connection {
 
     public void rollbackTimeout() {
         try {
-            socket.setSoTimeout(timeout);
+            socket.setSoTimeout(connectionInfo.getTimeout());
         } catch (SocketException ex) {
             throw new JedisException(ex);
         }
-    }
-
-    public Connection(final String host) {
-        super();
-        this.host = host;
     }
 
     protected void flush() {
@@ -83,37 +78,12 @@ public class Connection {
         return this;
     }
 
-    public Connection(final String host, final int port) {
-        super();
-        this.host = host;
-        this.port = port;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public void setHost(final String host) {
-        this.host = host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(final int port) {
-        this.port = port;
-    }
-
-    public Connection() {
-    }
-
     public void connect() {
         if (!isConnected()) {
             try {
                 socket = new Socket();
-                socket.connect(new InetSocketAddress(host, port), timeout);
-                socket.setSoTimeout(timeout);
+                socket.connect(new InetSocketAddress(connectionInfo.getHost(),connectionInfo.getPort()), connectionInfo.getTimeout());
+                socket.setSoTimeout(connectionInfo.getTimeout());
                 outputStream = new RedisOutputStream(socket.getOutputStream());
                 inputStream = new RedisInputStream(socket.getInputStream());
             } catch (IOException ex) {

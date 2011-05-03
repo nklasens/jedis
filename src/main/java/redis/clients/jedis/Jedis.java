@@ -11,26 +11,27 @@ import java.util.Set;
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 
 public class Jedis extends BinaryJedis implements JedisCommands {
+
     public Jedis(final String host) {
-        super(host);
+        this(new ConnectionInfo(host));
     }
 
     public Jedis(final String host, final int port) {
-        super(host, port);
+        this(new ConnectionInfo(host, port));
     }
 
     public Jedis(final String host, final int port, final int timeout) {
-        super(host, port, timeout);
+        this(new ConnectionInfo(host, port, timeout));
     }
 
-    public Jedis(String host, int port, String password) {
-      super(host, port, password);
+    public Jedis(final String host, final int port, final int timeout, String password) {
+        this(new ConnectionInfo(host, port, timeout, password));
     }
 
-    public Jedis(String host, int port, int timeout, String password) {
-      super(host, port, timeout, password);
+    public Jedis(final ConnectionInfo connectionInfo) {
+        super(connectionInfo);
     }
-
+    
     public String ping() {
         checkIsInMulti();
         client.ping();

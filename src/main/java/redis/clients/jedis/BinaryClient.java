@@ -34,14 +34,11 @@ public class BinaryClient extends Connection {
         return isInMulti;
     }
 
-    public BinaryClient(final String host) {
-        super(host);
+    public BinaryClient(final ConnectionInfo connectionInfo) {
+        super(connectionInfo);
+        password = connectionInfo.getPassword();
     }
 
-    public BinaryClient(final String host, final int port) {
-        super(host, port);
-    }
-    
     public void setPassword(final String password) {
         this.password = password;
     }

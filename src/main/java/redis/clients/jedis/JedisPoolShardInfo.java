@@ -1,6 +1,7 @@
 package redis.clients.jedis;
 
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
 public class JedisPoolShardInfo extends ConnetionShardInfo<JedisPool> {
   
@@ -8,28 +9,32 @@ public class JedisPoolShardInfo extends ConnetionShardInfo<JedisPool> {
 
     public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig,
           final String host) {
-      super(host);
-      this.poolConfig = poolConfig;
+      this(poolConfig, new ConnectionInfo(host));
     }
     
     public JedisPoolShardInfo(String host, int port) {
       this(new GenericObjectPool.Config(), host, port);
     }
     
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig,
-          final String host, final int port) {
-      super(host, port);
-      this.poolConfig = poolConfig;
+    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, final String host, final int port) {
+      this(poolConfig, new ConnectionInfo(host, port));
     }
     
-    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, final String host, int port,
-          int timeout) {
-      super(host, port, timeout);
-      this.poolConfig = poolConfig;
+    public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, final String host, int port, int timeout) {
+      this(poolConfig, new ConnectionInfo(host, port, timeout));
     }
 
     public JedisPoolShardInfo(final GenericObjectPool.Config poolConfig, String host, int port, int timeout, int weight) {
-      super(host, port, timeout, weight);
+      this(poolConfig, new ConnectionInfo(host, port, timeout), weight);
+    }
+
+    public JedisPoolShardInfo(Config poolConfig, ConnectionInfo connectionInfo) {
+      super(connectionInfo);
+      this.poolConfig = poolConfig;
+    }
+
+    public JedisPoolShardInfo(Config poolConfig, ConnectionInfo connectionInfo, int weight) {
+      super(connectionInfo, weight);
       this.poolConfig = poolConfig;
     }
 
@@ -39,6 +44,6 @@ public class JedisPoolShardInfo extends ConnetionShardInfo<JedisPool> {
   
     @Override
     protected JedisPool createResource() {
-        return new JedisPool(this.getPoolConfig(), this.getHost(), this.getPort(), this.getTimeout(), this.getPassword());
+        return new JedisPool(this.getPoolConfig(), this.getConnectionInfo());
     }
 }

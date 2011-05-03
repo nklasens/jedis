@@ -9,12 +9,8 @@ import java.util.Map.Entry;
 import redis.clients.util.SafeEncoder;
 
 public class Client extends BinaryClient implements Commands {
-    public Client(final String host) {
-        super(host);
-    }
-
-    public Client(final String host, final int port) {
-        super(host, port);
+    public Client(final ConnectionInfo connectionInfo) {
+        super(connectionInfo);
     }
 
     public void set(final String key, final String value) {

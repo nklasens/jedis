@@ -17,28 +17,8 @@ import redis.clients.util.SafeEncoder;
 public class BinaryJedis implements BinaryJedisCommands {
     protected Client client = null;
 
-    public BinaryJedis(final String host) {
-        client = new Client(host);
-    }
-
-    public BinaryJedis(final String host, final int port) {
-        client = new Client(host, port);
-    }
-
-    public BinaryJedis(final String host, final int port, final int timeout) {
-        client = new Client(host, port);
-        client.setTimeout(timeout);
-    }
-
-    public BinaryJedis(final String host, final int port, String password) {
-      client = new Client(host, port);
-      client.setPassword(password);
-    }
-    
-    public BinaryJedis(final String host, final int port, final int timeout, String password) {
-      client = new Client(host, port);
-      client.setTimeout(timeout);
-      client.setPassword(password);
+    public BinaryJedis(final ConnectionInfo connectionInfo) {
+        client = new Client(connectionInfo);
     }
 
     public String ping() {

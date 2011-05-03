@@ -2,6 +2,7 @@ package redis.clients.jedis;
 
 import org.apache.commons.pool.BasePoolableObjectFactory;
 import org.apache.commons.pool.impl.GenericObjectPool;
+import org.apache.commons.pool.impl.GenericObjectPool.Config;
 
 import redis.clients.util.Pool;
 
@@ -9,56 +10,45 @@ public class JedisPool extends Pool<Jedis> {
 
     public JedisPool(final GenericObjectPool.Config poolConfig,
             final String host) {
-        this(poolConfig, host, Protocol.DEFAULT_PORT, Protocol.DEFAULT_TIMEOUT,
-                null);
+        this(poolConfig, new ConnectionInfo(host));
     }
 
     public JedisPool(String host, int port) {
-        super(new GenericObjectPool.Config(), new JedisFactory(host, port,
-                Protocol.DEFAULT_TIMEOUT, null));
+        this(new GenericObjectPool.Config(), new ConnectionInfo(host, port));
     }
 
     public JedisPool(final GenericObjectPool.Config poolConfig, final String host, int port,
             int timeout, final String password) {
-        super(poolConfig, new JedisFactory(host, port, timeout, password));
+        this(poolConfig, new ConnectionInfo(host, port, timeout, password));
     }
 
     public JedisPool(final GenericObjectPool.Config poolConfig,
             final String host, final int port) {
-        this(poolConfig, host, port, Protocol.DEFAULT_TIMEOUT, null);
+        this(poolConfig, new ConnectionInfo(host, port));
     }
 
     public JedisPool(final GenericObjectPool.Config poolConfig,
             final String host, final int port, final int timeout) {
-        this(poolConfig, host, port, timeout, null);
+        this(poolConfig, new ConnectionInfo(host, port, timeout));
+    }
+
+    public JedisPool(Config poolConfig, ConnectionInfo connectionInfo) {
+        super(poolConfig, new JedisFactory(connectionInfo));
     }
 
     /**
      * PoolableObjectFactory custom impl.
      */
     private static class JedisFactory extends BasePoolableObjectFactory {
-        private final String host;
-        private final int port;
-        private final int timeout;
-        private final String password;
+        private final ConnectionInfo connectionInfo;
 
-        public JedisFactory(final String host, final int port,
-                final int timeout, final String password) {
+        public JedisFactory(final ConnectionInfo connectionInfo) {
             super();
-            this.host = host;
-            this.port = port;
-            this.timeout = (timeout > 0) ? timeout : -1;
-            this.password = password;
+            this.connectionInfo = connectionInfo;
         }
 
         public Object makeObject() throws Exception {
-            final Jedis jedis;
-            if (timeout > 0) {
-                jedis = new Jedis(this.host, this.port, this.timeout, this.password);
-            } else {
-                jedis = new Jedis(this.host, this.port, this.password);
-            }
-
+            final Jedis jedis = new Jedis(connectionInfo);
             jedis.connect();
             return jedis;
         }
