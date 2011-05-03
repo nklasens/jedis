@@ -24,8 +24,20 @@ public class Jedis extends BinaryJedis implements JedisCommands {
         this(new ConnectionInfo(host, port, timeout));
     }
 
+    public Jedis(final String host, final int port, String password) {
+      this(new ConnectionInfo(host, port, password));
+    }
+
+    public Jedis(final String host, final int port, String password, int database) {
+      this(new ConnectionInfo(host, port, password, database));
+    }
+
     public Jedis(final String host, final int port, final int timeout, String password) {
         this(new ConnectionInfo(host, port, timeout, password));
+    }
+
+    public Jedis(final String host, final int port, final int timeout, String password, int database) {
+      this(new ConnectionInfo(host, port, timeout, password, database));
     }
 
     public Jedis(final ConnectionInfo connectionInfo) {

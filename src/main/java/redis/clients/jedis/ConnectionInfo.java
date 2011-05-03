@@ -6,6 +6,7 @@ public class ConnectionInfo {
   private int port;
   private int timeout;
   private String password;
+  private int database;
 
   public ConnectionInfo(String host) {
     this(host, Protocol.DEFAULT_PORT);
@@ -23,11 +24,20 @@ public class ConnectionInfo {
     this(host, port, Protocol.DEFAULT_TIMEOUT, password);
   }
 
+  public ConnectionInfo(String host, int port, String password, int database) {
+    this(host, port, Protocol.DEFAULT_TIMEOUT, password, database);
+  }
+
   public ConnectionInfo(String host, int port, int timeout, String password) {
+    this(host, port, timeout, password, Protocol.DEFAULT_DATABASE); 
+  }
+
+  public ConnectionInfo(String host, int port, int timeout, String password, int database) {
     this.host = host;
     this.port = port;
     this.timeout = timeout > 0 ? timeout : Protocol.DEFAULT_TIMEOUT;
     this.password = password;
+    this.database = database >= 0 ? database : Protocol.DEFAULT_DATABASE;
   }
   
   public String getHost() {
@@ -46,6 +56,10 @@ public class ConnectionInfo {
     return password;
   }
 
+  public int getDatabase() {
+    return database;
+  }
+  
   @Override
   public int hashCode() {
     final int prime = 31;

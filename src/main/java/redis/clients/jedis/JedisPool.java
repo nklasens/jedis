@@ -8,8 +8,7 @@ import redis.clients.util.Pool;
 
 public class JedisPool extends Pool<Jedis> {
 
-    public JedisPool(final GenericObjectPool.Config poolConfig,
-            final String host) {
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host) {
         this(poolConfig, new ConnectionInfo(host));
     }
 
@@ -17,19 +16,28 @@ public class JedisPool extends Pool<Jedis> {
         this(new GenericObjectPool.Config(), new ConnectionInfo(host, port));
     }
 
-    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, int port,
-            int timeout, final String password) {
-        this(poolConfig, new ConnectionInfo(host, port, timeout, password));
-    }
-
-    public JedisPool(final GenericObjectPool.Config poolConfig,
-            final String host, final int port) {
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, final int port) {
         this(poolConfig, new ConnectionInfo(host, port));
     }
 
-    public JedisPool(final GenericObjectPool.Config poolConfig,
-            final String host, final int port, final int timeout) {
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, final int port, final String password) {
+        this(poolConfig, new ConnectionInfo(host, port, password));
+    }
+    
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, final int port, final String password, int database) {
+        this(poolConfig, new ConnectionInfo(host, port, password, database));
+    }
+
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, final int port, final int timeout) {
         this(poolConfig, new ConnectionInfo(host, port, timeout));
+    }
+
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, int port, int timeout, final String password) {
+        this(poolConfig, new ConnectionInfo(host, port, timeout, password));
+    }
+
+    public JedisPool(final GenericObjectPool.Config poolConfig, final String host, int port, int timeout, final String password, int database) {
+        this(poolConfig, new ConnectionInfo(host, port, timeout, password, database));
     }
 
     public JedisPool(Config poolConfig, ConnectionInfo connectionInfo) {

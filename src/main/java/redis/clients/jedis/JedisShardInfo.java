@@ -30,16 +30,28 @@ public class JedisShardInfo extends ShardInfo<Jedis> {
       this(new ConnectionInfo(host, port));
     }
 
-    public JedisShardInfo(String host, int port, String password) {
-      this(new ConnectionInfo(host, port, password));
-    }
-    
     public JedisShardInfo(String host, int port, int timeout) {
       this(new ConnectionInfo(host, port, timeout));
     }
-    
+
+    public JedisShardInfo(String host, int port, String password) {
+      this(new ConnectionInfo(host, port, password));
+    }
+
+    public JedisShardInfo(String host, int port, String password, int database) {
+      this(new ConnectionInfo(host, port, password, database));
+    }
+
     public JedisShardInfo(String host, int port, int timeout, int weight) {
       this(new ConnectionInfo(host, port, timeout), weight);
+    }
+
+    public JedisShardInfo(String host, int port, int timeout, String password, int weight) {
+      this(new ConnectionInfo(host, port, timeout, password), weight);
+    }
+
+    public JedisShardInfo(String host, int port, int timeout, String password, int database, int weight) {
+      this(new ConnectionInfo(host, port, timeout, password, database), weight);
     }
 
     public JedisShardInfo(ConnectionInfo connectionInfo) {

@@ -29,6 +29,7 @@ public class BinaryClient extends Connection {
     private boolean isInMulti;
     
     private String password;
+    private int database;
 
     public boolean isInMulti() {
         return isInMulti;
@@ -37,12 +38,9 @@ public class BinaryClient extends Connection {
     public BinaryClient(final ConnectionInfo connectionInfo) {
         super(connectionInfo);
         password = connectionInfo.getPassword();
+        database = connectionInfo.getDatabase();
     }
 
-    public void setPassword(final String password) {
-        this.password = password;
-    }
-    
     @Override
     public void connect() {
         if (!isConnected()) {
@@ -50,6 +48,10 @@ public class BinaryClient extends Connection {
             if (password != null) {
                 sendCommand(AUTH, password);
                 getStatusCodeReply();
+            }
+            if (database > Protocol.DEFAULT_DATABASE) {
+              sendCommand(SELECT, toByteArray(database));
+              getStatusCodeReply();
             }
         }
     }
@@ -119,6 +121,7 @@ public class BinaryClient extends Connection {
     }
 
     public void select(final int index) {
+        this.database = index;
         sendCommand(SELECT, toByteArray(index));
     }
 
@@ -452,7 +455,7 @@ public class BinaryClient extends Connection {
     }
 
     public void auth(final String password) {
-    	setPassword(password);
+    	this.password = password;
         sendCommand(AUTH, password);
     }
 
