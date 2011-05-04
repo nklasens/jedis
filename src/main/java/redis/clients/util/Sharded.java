@@ -10,6 +10,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import redis.clients.jedis.exceptions.JedisException;
+
 public class Sharded<R, S extends ShardInfo<R>> {
 
     public static final int DEFAULT_WEIGHT = 1;
@@ -53,13 +55,70 @@ public class Sharded<R, S extends ShardInfo<R>> {
     private void initialize(List<S> shards) {
         nodes = new TreeMap<Long, S>();
 
-        for (int i = 0; i != shards.size(); ++i) {
-            final S shardInfo = shards.get(i);
-            for (int n = 0; n < 160 * shardInfo.getWeight(); n++) {
-                nodes.put(this.algo.hash("SHARD-" + i + "-NODE-" + n), shardInfo);
-            }
-            resources.put(shardInfo, shardInfo.createResource());
+        if (this.algo == Hashing.KETAMA) {
+          createKetamaContinuum(shards);
         }
+        else {
+          createContinuum(shards);
+        }
+
+        for (S shardInfo : shards) {
+          resources.put(shardInfo, shardInfo.createResource());
+        }
+    }
+
+    protected String createContinuumId(final S shardInfo, int shardPosition, int repetition) {
+      String shardId = shardInfo.getIdentifier();
+      if (shardId == null) {
+        shardId = "SHARD-" + shardPosition + "-NODE";
+      }
+      return shardId + "-" + repetition;
+    }
+
+    protected void createContinuum(List<S> shards) {
+      for (int shardPosition = 0; shardPosition != shards.size(); ++shardPosition) {
+        final S shardInfo = shards.get(shardPosition);
+        for (int repetition = 0; repetition < 160 * shardInfo.getWeight(); repetition++) {
+            String continuumid = createContinuumId(shardInfo, shardPosition, repetition);
+            nodes.put(this.algo.hash(continuumid), shardInfo);
+        }
+      }
+    }
+
+    /**
+     * ketama - a consistent hashing algo
+     * libketama compatible implementation
+     * http://www.last.fm/user/RJ/journal/2007/04/10/rz_libketama_-_a_consistent_hashing_algo_for_memcache_clients
+     * 
+     * Notice the difference with {@link #createContinuum(List)}. 
+     * The repetition is calculated differently. Evenly weighted shards are for ketama max 40 and not 160
+     */
+    protected void createKetamaContinuum(List<S> shards) {
+      if (this.algo != Hashing.KETAMA) {
+        throw new JedisException("KetamaContinuum requires KETAMA algo");
+      }
+      int totalWeight = 0;
+      for (S shardInfo : shards) {
+        totalWeight += shardInfo.getWeight() <= 0 ? DEFAULT_WEIGHT : shardInfo.getWeight();
+      }
+
+      for (int i = 0; i != shards.size(); ++i) {
+        final S shardInfo = shards.get(i);
+        int weight = shardInfo.getWeight() <= 0 ? DEFAULT_WEIGHT : shardInfo.getWeight();
+        double factor = Math.floor(((double) (40 * shards.size() * weight)) / (double) totalWeight);
+
+        for (int repetition = 0; repetition < factor; repetition++) {
+          String continuumid = createContinuumId(shardInfo, i, repetition);
+          byte[] d = Hashing.KETAMA.hashBytes(continuumid);
+          for (int h = 0; h < 4; h++) {
+            Long k = ((long) (d[3 + h * 4] & 0xFF) << 24)
+                   | ((long) (d[2 + h * 4] & 0xFF) << 16)
+                   | ((long) (d[1 + h * 4] & 0xFF) << 8)
+                   | ((long) (d[0 + h * 4] & 0xFF));
+            nodes.put(k, shardInfo);
+          }
+        }
+      }
     }
 
     public R getShard(byte[] key) {

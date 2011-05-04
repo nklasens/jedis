@@ -59,7 +59,11 @@ public class JedisShardInfo extends ShardInfo<Jedis> {
     }
 
     public JedisShardInfo(ConnectionInfo connectionInfo, int weight) {
-      super(weight);
+      this(connectionInfo, weight, null);
+    }
+
+    public JedisShardInfo(ConnectionInfo connectionInfo, int weight, String identifier) {
+      super(weight, identifier);
       this.connectionInfo = connectionInfo;
     }
 
