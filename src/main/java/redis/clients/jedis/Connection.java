@@ -26,6 +26,10 @@ public class Connection {
     public Connection(final ConnectionInfo connectionInfo) {
         super();
         this.connectionInfo = connectionInfo;
+	}
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public ConnectionInfo getConnectionInfo() {
@@ -66,16 +70,34 @@ public class Connection {
 
     protected Connection sendCommand(final Command cmd, final byte[]... args) {
         connect();
-        protocol.sendCommand(outputStream, cmd, args);
+        sendProtocolCommand(cmd, args);
         pipelinedCommands++;
         return this;
     }
 
     protected Connection sendCommand(final Command cmd) {
         connect();
-        protocol.sendCommand(outputStream, cmd, new byte[0][]);
+        sendProtocolCommand(cmd, new byte[0][]);
         pipelinedCommands++;
         return this;
+    }
+
+    protected void sendProtocolCommand(final Command cmd, final byte[]... args) {
+      try {
+          protocol.sendCommand(outputStream, cmd, args);
+      } catch (JedisConnectionException e) {
+        disconnect();
+        throw e;
+      }
+    }
+
+    protected Object read() {
+      try {
+        return protocol.read(inputStream);
+      } catch (JedisConnectionException e) {
+        disconnect();
+        throw e;
+      }
     }
 
     public void connect() {
@@ -115,7 +137,7 @@ public class Connection {
     protected String getStatusCodeReply() {
         flush();
         pipelinedCommands--;
-        final byte[] resp = (byte[]) protocol.read(inputStream);
+        final byte[] resp = (byte[]) read();
         if (null == resp) {
             return null;
         } else {
@@ -135,13 +157,13 @@ public class Connection {
     public byte[] getBinaryBulkReply() {
         flush();
         pipelinedCommands--;
-        return (byte[]) protocol.read(inputStream);
+        return (byte[]) read();
     }
 
     public Long getIntegerReply() {
         flush();
         pipelinedCommands--;
-        return (Long) protocol.read(inputStream);
+        return (Long) read();
     }
 
     public List<String> getMultiBulkReply() {
@@ -152,14 +174,14 @@ public class Connection {
     public List<byte[]> getBinaryMultiBulkReply() {
         flush();
         pipelinedCommands--;
-        return (List<byte[]>) protocol.read(inputStream);
+        return (List<byte[]>) read();
     }
 
     @SuppressWarnings("unchecked")
     public List<Object> getObjectMultiBulkReply() {
         flush();
         pipelinedCommands--;
-        return (List<Object>) protocol.read(inputStream);
+        return (List<Object>) read();
     }
 
     public List<Object> getAll() {
@@ -170,7 +192,7 @@ public class Connection {
         List<Object> all = new ArrayList<Object>();
         flush();
         while (pipelinedCommands > except) {
-            all.add(protocol.read(inputStream));
+            all.add(read());
             pipelinedCommands--;
         }
         return all;
@@ -179,6 +201,6 @@ public class Connection {
     public Object getOne() {
         flush();
         pipelinedCommands--;
-        return protocol.read(inputStream);
+        return read();
     }
 }

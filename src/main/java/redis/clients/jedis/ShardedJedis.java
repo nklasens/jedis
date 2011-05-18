@@ -1,6 +1,5 @@
 package redis.clients.jedis;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -208,7 +207,7 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
         return j.hkeys(key);
     }
 
-    public Collection<String> hvals(String key) {
+    public List<String> hvals(String key) {
         Jedis j = getShard(key);
         return j.hvals(key);
     }
@@ -233,27 +232,27 @@ public class ShardedJedis extends BinaryShardedJedis implements JedisCommands {
         return j.llen(key);
     }
 
-    public List<String> lrange(String key, int start, int end) {
+    public List<String> lrange(String key, long start, long end) {
         Jedis j = getShard(key);
         return j.lrange(key, start, end);
     }
 
-    public String ltrim(String key, int start, int end) {
+    public String ltrim(String key, long start, long end) {
         Jedis j = getShard(key);
         return j.ltrim(key, start, end);
     }
 
-    public String lindex(String key, int index) {
+    public String lindex(String key, long index) {
         Jedis j = getShard(key);
         return j.lindex(key, index);
     }
 
-    public String lset(String key, int index, String value) {
+    public String lset(String key, long index, String value) {
         Jedis j = getShard(key);
         return j.lset(key, index, value);
     }
 
-    public Long lrem(String key, int count, String value) {
+    public Long lrem(String key, long count, String value) {
         Jedis j = getShard(key);
         return j.lrem(key, count, value);
     }

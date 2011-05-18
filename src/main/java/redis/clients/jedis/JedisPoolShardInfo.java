@@ -10,10 +10,7 @@ public class JedisPoolShardInfo extends ShardInfo<JedisPool>{
   private final Config poolConfig;
   
   public JedisPoolShardInfo(JedisShardInfo shardInfo, Config poolConfig){
-    super(shardInfo.getWeight());
-    if((shardInfo == null) || (poolConfig == null)){
-      throw new IllegalArgumentException("Can not be null");
-    } 
+    super(shardInfo.getWeight(), shardInfo.getName());
     
     this.shardInfo = shardInfo;
     this.poolConfig = poolConfig;
@@ -27,6 +24,10 @@ public class JedisPoolShardInfo extends ShardInfo<JedisPool>{
     return shardInfo.getConnectionInfo();
   }
 
+  public Config getPoolConfig() {
+    return poolConfig;
+  }
+  
   @Override
   protected JedisPool createResource() {
     return new JedisPool(poolConfig, shardInfo.getConnectionInfo());

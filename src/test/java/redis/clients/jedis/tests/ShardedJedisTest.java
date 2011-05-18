@@ -6,11 +6,7 @@ import java.util.List;
 import org.junit.Assert;
 import org.junit.Test;
 
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisShardInfo;
-import redis.clients.jedis.Protocol;
-import redis.clients.jedis.ShardedJedis;
-import redis.clients.jedis.ShardedJedisPipeline;
+import redis.clients.jedis.*;
 import redis.clients.jedis.tests.HostAndPortUtil.HostAndPort;
 import redis.clients.util.Hashing;
 import redis.clients.util.SafeEncoder;
@@ -23,10 +19,10 @@ public class ShardedJedisTest extends Assert {
             .get(1);
 
     private List<String> getKeysDifferentShard(ShardedJedis jedis) {
-        List<String> ret = new ArrayList<String> ();
+        List<String> ret = new ArrayList<String>();
         JedisShardInfo first = jedis.getShardInfo("a0");
         ret.add("a0");
-        for (int i =1; i < 100; ++i) {
+        for (int i = 1; i < 100; ++i) {
             JedisShardInfo actual = jedis.getShardInfo("a" + i);
             if (actual != first) {
                 ret.add("a" + i);
@@ -53,9 +49,9 @@ public class ShardedJedisTest extends Assert {
     @Test
     public void trySharding() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port, "foobared");
+        JedisShardInfo si = new JedisShardInfo(new ConnectionInfo(redis1.host, redis1.port, "foobared"));
         shards.add(si);
-        si = new JedisShardInfo(redis2.host, redis2.port, "foobared");
+        si = new JedisShardInfo(new ConnectionInfo(redis2.host, redis2.port, "foobared"));
         shards.add(si);
         ShardedJedis jedis = new ShardedJedis(shards);
         jedis.set("a", "bar");
@@ -78,9 +74,9 @@ public class ShardedJedisTest extends Assert {
     @Test
     public void tryShardingWithMurmure() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        JedisShardInfo si = new JedisShardInfo(redis1.host, redis1.port, "foobared");
+        JedisShardInfo si = new JedisShardInfo(new ConnectionInfo(redis1.host, redis1.port, "foobared"));
         shards.add(si);
-        si = new JedisShardInfo(redis2.host, redis2.port, "foobared");
+        si = new JedisShardInfo(new ConnectionInfo(redis2.host, redis2.port, "foobared"));
         shards.add(si);
         ShardedJedis jedis = new ShardedJedis(shards, Hashing.MURMUR_HASH);
         jedis.set("a", "bar");
@@ -131,16 +127,16 @@ public class ShardedJedisTest extends Assert {
         assertEquals(jedis2.getKeyTag("foo"), "foo");
         assertNotSame(jedis2.getKeyTag("foo{bar}"), "bar");
 
-        JedisShardInfo s5 = jedis2.getShardInfo(keys.get(0)+"{bar}");
-        JedisShardInfo s6 = jedis2.getShardInfo(keys.get(1)+"{bar}");
+        JedisShardInfo s5 = jedis2.getShardInfo(keys.get(0) + "{bar}");
+        JedisShardInfo s6 = jedis2.getShardInfo(keys.get(1) + "{bar}");
         assertNotSame(s5, s6);
     }
 
     @Test
     public void shardedPipeline() {
         List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>();
-        shards.add(new JedisShardInfo(redis1.host, redis1.port, "foobared"));
-        shards.add(new JedisShardInfo(redis2.host, redis2.port, "foobared"));
+        shards.add(new JedisShardInfo(new ConnectionInfo(redis1.host, redis1.port, "foobared")));
+        shards.add(new JedisShardInfo(new ConnectionInfo(redis2.host, redis2.port, "foobared")));
         ShardedJedis jedis = new ShardedJedis(shards);
 
         final List<String> keys = getKeysDifferentShard(jedis);
@@ -234,5 +230,64 @@ public class ShardedJedisTest extends Assert {
         assertTrue(shard_6380 > 300 && shard_6380 < 400);
         assertTrue(shard_6381 > 300 && shard_6381 < 400);
     }
-}
 
+    @Test
+    public void testMasterSlaveShardingConsistency() {
+        List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>(3);
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT));
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT + 1));
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT + 2));
+        Sharded<Jedis, JedisShardInfo> sharded = new Sharded<Jedis, JedisShardInfo>(
+                shards, Hashing.MURMUR_HASH);
+
+        List<JedisShardInfo> otherShards = new ArrayList<JedisShardInfo>(3);
+        otherShards.add(new JedisShardInfo("otherhost", Protocol.DEFAULT_PORT));
+        otherShards.add(new JedisShardInfo("otherhost",
+                Protocol.DEFAULT_PORT + 1));
+        otherShards.add(new JedisShardInfo("otherhost",
+                Protocol.DEFAULT_PORT + 2));
+        Sharded<Jedis, JedisShardInfo> sharded2 = new Sharded<Jedis, JedisShardInfo>(
+                otherShards, Hashing.MURMUR_HASH);
+
+        for (int i = 0; i < 1000; i++) {
+            JedisShardInfo jedisShardInfo = sharded.getShardInfo(Integer
+                    .toString(i));
+            JedisShardInfo jedisShardInfo2 = sharded2.getShardInfo(Integer
+                    .toString(i));
+            assertEquals(shards.indexOf(jedisShardInfo), otherShards
+                    .indexOf(jedisShardInfo2));
+        }
+
+    }
+
+    @Test
+    public void testMasterSlaveShardingConsistencyWithShardNaming() {
+        List<JedisShardInfo> shards = new ArrayList<JedisShardInfo>(3);
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT,
+                "HOST1:1234"));
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT + 1,
+                "HOST2:1234"));
+        shards.add(new JedisShardInfo("localhost", Protocol.DEFAULT_PORT + 2,
+                "HOST3:1234"));
+        Sharded<Jedis, JedisShardInfo> sharded = new Sharded<Jedis, JedisShardInfo>(
+                shards, Hashing.MURMUR_HASH);
+
+        List<JedisShardInfo> otherShards = new ArrayList<JedisShardInfo>(3);
+        otherShards.add(new JedisShardInfo("otherhost", Protocol.DEFAULT_PORT,
+                "HOST2:1234"));
+        otherShards.add(new JedisShardInfo("otherhost",
+                Protocol.DEFAULT_PORT + 1, "HOST3:1234"));
+        otherShards.add(new JedisShardInfo("otherhost",
+                Protocol.DEFAULT_PORT + 2, "HOST1:1234"));
+        Sharded<Jedis, JedisShardInfo> sharded2 = new Sharded<Jedis, JedisShardInfo>(
+                otherShards, Hashing.MURMUR_HASH);
+
+        for (int i = 0; i < 1000; i++) {
+            JedisShardInfo jedisShardInfo = sharded.getShardInfo(Integer
+                    .toString(i));
+            JedisShardInfo jedisShardInfo2 = sharded2.getShardInfo(Integer
+                    .toString(i));
+            assertEquals(jedisShardInfo.getName(), jedisShardInfo2.getName());
+        }
+    }
+}
