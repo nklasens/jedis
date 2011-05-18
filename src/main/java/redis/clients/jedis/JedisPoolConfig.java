@@ -23,6 +23,12 @@ import org.apache.commons.pool.impl.GenericObjectPool.Config;
  * GenericObjectPool.html
  */
 public class JedisPoolConfig extends Config {
+
+    public static final long MAX_RETRY_DELAY = 10 * 60 * 1000;  // max of 10 minute delay for fall off
+
+    private long deadWait = -1L;
+    private long deadMaxWait = MAX_RETRY_DELAY;
+  
     public JedisPoolConfig() {
         // defaults to make your life with connection pool easier :)
         setTestWhileIdle(true);
@@ -31,6 +37,22 @@ public class JedisPoolConfig extends Config {
         setNumTestsPerEvictionRun(-1);
     }
 
+    public long getDeadWait() {
+      return deadWait;
+    }
+    
+    public void setDeadWait(long deadHostWait) {
+      this.deadWait = deadHostWait;
+    }
+
+    public long getDeadMaxWait() {
+      return deadMaxWait;
+    }
+    
+    public void setDeadMaxWait(long deadMaxWait) {
+      this.deadMaxWait = deadMaxWait;
+    }
+    
     public int getMaxIdle() {
         return maxIdle;
     }

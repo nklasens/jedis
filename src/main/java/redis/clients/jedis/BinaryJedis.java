@@ -62,9 +62,10 @@ public class BinaryJedis implements BinaryJedisCommands {
     /**
      * Ask the server to silently close the connection.
      */
-    public void quit() {
+    public String quit() {
         checkIsInMulti();
         client.quit();
+        return client.getStatusCodeReply();
     }
 
     /**
@@ -2977,5 +2978,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         client.setTimeoutInfinite();
         jedisPubSub.proceedWithPatterns(client, patterns);
         client.rollbackTimeout();
+    }
+
+    public Long getDB() {
+        return client.getDB();
     }
 }

@@ -22,48 +22,48 @@ public class JedisShardInfo extends ShardInfo<Jedis> {
   
     private ConnectionInfo connectionInfo;
 
-    public JedisShardInfo(String host) {
-        this(new ConnectionInfo(host));
+    public String toString() {
+        return connectionInfo.toString() + "*" + getWeight();
     }
 
+    public JedisShardInfo(String host, String name) {
+    	this(new ConnectionInfo(host), name);
+    }
+    	 
     public JedisShardInfo(String host, int port) {
-      this(new ConnectionInfo(host, port));
+        this(new ConnectionInfo(host, port));
     }
-
+    
+    public JedisShardInfo(String host, int port, String name) {
+    	this(new ConnectionInfo(host, port), name);
+    }
+    
     public JedisShardInfo(String host, int port, int timeout) {
-      this(new ConnectionInfo(host, port, timeout));
+        this(new ConnectionInfo(host, port, timeout));
     }
-
-    public JedisShardInfo(String host, int port, String password) {
-      this(new ConnectionInfo(host, port, password));
+    
+    public JedisShardInfo(String host, int port, int timeout, String name) {
+    	this(new ConnectionInfo(host, port, timeout), name);
     }
-
-    public JedisShardInfo(String host, int port, String password, int database) {
-      this(new ConnectionInfo(host, port, password, database));
-    }
-
+    
     public JedisShardInfo(String host, int port, int timeout, int weight) {
       this(new ConnectionInfo(host, port, timeout), weight);
-    }
-
-    public JedisShardInfo(String host, int port, int timeout, String password, int weight) {
-      this(new ConnectionInfo(host, port, timeout, password), weight);
-    }
-
-    public JedisShardInfo(String host, int port, int timeout, String password, int database, int weight) {
-      this(new ConnectionInfo(host, port, timeout, password, database), weight);
     }
 
     public JedisShardInfo(ConnectionInfo connectionInfo) {
       this(connectionInfo, Sharded.DEFAULT_WEIGHT);
     }
 
+    public JedisShardInfo(ConnectionInfo connectionInfo, String name) {
+      this(connectionInfo, Sharded.DEFAULT_WEIGHT, name);
+    }
+
     public JedisShardInfo(ConnectionInfo connectionInfo, int weight) {
       this(connectionInfo, weight, null);
     }
 
-    public JedisShardInfo(ConnectionInfo connectionInfo, int weight, String identifier) {
-      super(weight, identifier);
+    public JedisShardInfo(ConnectionInfo connectionInfo, int weight, String name) {
+      super(weight, name);
       this.connectionInfo = connectionInfo;
     }
 

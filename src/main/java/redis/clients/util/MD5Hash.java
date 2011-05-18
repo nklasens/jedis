@@ -18,20 +18,22 @@ public class MD5Hash implements Hashing {
     }
 
     public byte[] hashBytes(byte[] key) {
-      MessageDigest md5 = createMessageDigest();
+      MessageDigest md5 = MD5.get();
       md5.reset();
       md5.update(key);
       byte[] bKey = md5.digest();
       return bKey;
     }
 
-    protected MessageDigest createMessageDigest() {
-      try {
+    private static ThreadLocal<MessageDigest> MD5 = new ThreadLocal<MessageDigest>() {
+      @Override
+      protected final MessageDigest initialValue() {
+        try {
           return MessageDigest.getInstance("MD5");
-      } catch (NoSuchAlgorithmException e) {
-          throw new IllegalStateException(
-                  "++++ no md5 algorythm found");
+        } catch (NoSuchAlgorithmException e) {
+          throw new IllegalStateException("++++ no md5 algorythm found");
+        }
       }
-    }
-
+    };
+    
 }

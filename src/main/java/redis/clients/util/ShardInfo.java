@@ -2,21 +2,20 @@ package redis.clients.util;
 
 public abstract class ShardInfo<T> {
     private int weight;
-    private String identifier;
+    private String name;
 
-    public ShardInfo(int weight, String identifier) {
+    public ShardInfo(int weight, String name) {
       this.weight = weight;
-      this.identifier = identifier;
+      this.name = name;
     }
     
     public int getWeight() {
         return this.weight;
     }
     
-    public String getIdentifier() {
-      return identifier;
+    public String getName() {
+      return name;
     }
 
     protected abstract T createResource();
-
 }

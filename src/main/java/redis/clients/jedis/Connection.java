@@ -26,6 +26,10 @@ public class Connection {
     public Connection(final ConnectionInfo connectionInfo) {
         super();
         this.connectionInfo = connectionInfo;
+	}
+
+    public Socket getSocket() {
+        return socket;
     }
 
     public ConnectionInfo getConnectionInfo() {
