@@ -68,11 +68,10 @@ public class Sharded<R, S extends ShardInfo<R>> {
     }
 
     protected String createContinuumId(final S shardInfo, int shardPosition, int repetition) {
-      String shardId = shardInfo.getName();
-      if (shardId == null) {
-        shardId = "SHARD-" + shardPosition + "-NODE";
+      if (shardInfo.getName() == null) {
+        return "SHARD-" + shardPosition + "-NODE-" + repetition ;
       }
-      return shardId + "-" + repetition;
+      return shardInfo.getName() + "*" + shardInfo.getWeight() + repetition;
     }
 
     protected void createContinuum(List<S> shards) {
