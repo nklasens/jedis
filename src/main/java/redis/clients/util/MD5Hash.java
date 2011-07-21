@@ -13,7 +13,8 @@ public class MD5Hash implements Hashing {
         byte[] bKey = hashBytes(key);
         long res = ((long) (bKey[3] & 0xFF) << 24)
                 | ((long) (bKey[2] & 0xFF) << 16)
-                | ((long) (bKey[1] & 0xFF) << 8) | (long) (bKey[0] & 0xFF);
+                | ((long) (bKey[1] & 0xFF) << 8)
+                | (long) (bKey[0] & 0xFF);
         return res;
     }
 
