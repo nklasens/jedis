@@ -110,6 +110,7 @@ public class Sharded<R, S extends ShardInfo<R>> {
         for (int repetition = 0; repetition < factor; repetition++) {
           String continuumid = createContinuumId(shardInfo, i, repetition);
           byte[] d = Hashing.KETAMA.hashBytes(continuumid);
+          // MD% returns 16 bytes. Create 4 continuum points out of these bytes
           for (int h = 0; h < 4; h++) {
             Long k = ((long) (d[3 + h * 4] & 0xFF) << 24)
                    | ((long) (d[2 + h * 4] & 0xFF) << 16)
