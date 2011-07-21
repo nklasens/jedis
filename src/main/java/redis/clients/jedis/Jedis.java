@@ -1,12 +1,6 @@
 package redis.clients.jedis;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import redis.clients.jedis.BinaryClient.LIST_POSITION;
 
@@ -191,8 +185,15 @@ public class Jedis extends BinaryJedis implements JedisCommands {
     public Set<String> keys(final String pattern) {
         checkIsInMulti();
         client.keys(pattern);
-        return BuilderFactory.STRING_SET
-                .build(client.getBinaryMultiBulkReply());
+        String build = BuilderFactory.STRING
+                .build(client.getBinaryBulkReply());
+        final Set<String> result = new HashSet<String>();
+        StringTokenizer tokenize = new StringTokenizer(build);
+        while (tokenize.hasMoreTokens()) {
+          String key = (String) tokenize.nextToken();
+          result.add(key);
+        }
+        return result;
     }
 
     /**
@@ -1191,6 +1192,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
         checkIsInMulti();
         client.smembers(key);
         final List<String> members = client.getMultiBulkReply();
+        if (members == null) {
+          return new HashSet<String>();
+        }
         return new HashSet<String>(members);
     }
 
@@ -1315,6 +1319,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
         checkIsInMulti();
         client.sinter(keys);
         final List<String> members = client.getMultiBulkReply();
+        if (members == null) {
+          return new HashSet<String>();
+        }
         return new HashSet<String>(members);
     }
 
@@ -1355,6 +1362,9 @@ public class Jedis extends BinaryJedis implements JedisCommands {
         checkIsInMulti();
         client.sunion(keys);
         final List<String> members = client.getMultiBulkReply();
+        if (members == null) {
+          return new HashSet<String>();
+        }
         return new HashSet<String>(members);
     }
 

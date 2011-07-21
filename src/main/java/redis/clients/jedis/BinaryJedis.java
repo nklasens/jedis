@@ -166,9 +166,11 @@ public class BinaryJedis implements BinaryJedisCommands {
     public Set<byte[]> keys(final byte[] pattern) {
         checkIsInMulti();
         client.keys(pattern);
-        final HashSet<byte[]> keySet = new HashSet<byte[]>(client
-                .getBinaryMultiBulkReply());
-        return keySet;
+        List<byte[]> keys = client.getBinaryMultiBulkReply();
+        if (keys == null) {
+          return new HashSet<byte[]>();
+        }
+        return new HashSet<byte[]>(keys);
     }
 
     /**
@@ -819,6 +821,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         checkIsInMulti();
         client.hkeys(key);
         final List<byte[]> lresult = client.getBinaryMultiBulkReply();
+        if (lresult == null) {
+          return new HashSet<byte[]>();
+        }
         return new HashSet<byte[]>(lresult);
     }
 
@@ -1170,6 +1175,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         checkIsInMulti();
         client.smembers(key);
         final List<byte[]> members = client.getBinaryMultiBulkReply();
+        if (members == null) {
+          return new HashSet<byte[]>();
+        }
         return new HashSet<byte[]>(members);
     }
 
@@ -1294,6 +1302,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         checkIsInMulti();
         client.sinter(keys);
         final List<byte[]> members = client.getBinaryMultiBulkReply();
+        if (members == null) {
+          return new HashSet<byte[]>();
+        }
         return new HashSet<byte[]>(members);
     }
 
@@ -1334,6 +1345,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         checkIsInMulti();
         client.sunion(keys);
         final List<byte[]> members = client.getBinaryMultiBulkReply();
+        if (members == null) {
+          return new HashSet<byte[]>();
+        }
         return new HashSet<byte[]>(members);
     }
 
@@ -1382,6 +1396,9 @@ public class BinaryJedis implements BinaryJedisCommands {
         checkIsInMulti();
         client.sdiff(keys);
         final List<byte[]> members = client.getBinaryMultiBulkReply();
+        if (members == null) {
+          return new HashSet<byte[]>();
+        }
         return new HashSet<byte[]>(members);
     }
 
