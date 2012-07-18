@@ -6,9 +6,7 @@ import java.util.List;
 
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisDataException;
-import redis.clients.util.RedisInputStream;
-import redis.clients.util.RedisOutputStream;
-import redis.clients.util.SafeEncoder;
+import redis.clients.util.*;
 
 public final class Protocol {
 
@@ -77,6 +75,27 @@ public final class Protocol {
         return null;
     }
 
+    private void process(final RedisInputStream is, ReplyOutputStream out) {
+      try {
+          byte b = is.readByte();
+          if (b == MINUS_BYTE) {
+              processError(is);
+          } else if (b == ASTERISK_BYTE) {
+            processMultiBulkReply(is, out);
+          } else if (b == COLON_BYTE) {
+            throw new JedisConnectionException("Cannot convert integer reply to a stream: " + (char) b);
+          } else if (b == DOLLAR_BYTE) {
+              processBulkReply(is, out);
+          } else if (b == PLUS_BYTE) {
+            throw new JedisConnectionException("Cannot convert StatusCode reply to a stream: " + (char) b);
+          } else {
+              throw new JedisConnectionException("Unknown reply: " + (char) b);
+          }
+      } catch (IOException e) {
+          throw new JedisConnectionException(e);
+      }
+    }
+    
     private byte[] processStatusCodeReply(final RedisInputStream is) {
         return SafeEncoder.encode(is.readLine());
     }
@@ -102,6 +121,25 @@ public final class Protocol {
         return read;
     }
 
+    private void processBulkReply(final RedisInputStream is, ReplyOutputStream out) {
+        int len = Integer.parseInt(is.readLine());
+        if (len == -1) {
+            return;
+        }
+        int offset = 0;
+        try {
+            while (offset < len) {
+                offset += is.read(out, offset, (len - offset));
+            }
+            // read 2 more bytes for the command delimiter
+            is.readByte();
+            is.readByte();
+            out.finishReply();
+        } catch (IOException e) {
+            throw new JedisConnectionException(e);
+        }
+    }
+
     private Long processInteger(final RedisInputStream is) {
         String num = is.readLine();
         return Long.valueOf(num);
@@ -119,10 +157,24 @@ public final class Protocol {
         return ret;
     }
 
+    private void processMultiBulkReply(final RedisInputStream is, ReplyOutputStream out) {
+      int num = Integer.parseInt(is.readLine());
+      if (num == -1) {
+          return;
+      }
+      for (int i = 0; i < num; i++) {
+          process(is, out);
+      }
+    }
+
     public Object read(final RedisInputStream is) {
         return process(is);
     }
 
+    public void read(final RedisInputStream is, ReplyOutputStream out) {
+      process(is, out);
+    }
+    
     public static final byte[] toByteArray(final int value) {
         return SafeEncoder.encode(String.valueOf(value));
     }

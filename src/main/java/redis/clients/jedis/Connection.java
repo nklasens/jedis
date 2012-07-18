@@ -1,18 +1,14 @@
 package redis.clients.jedis;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketException;
+import java.net.*;
 import java.util.ArrayList;
 import java.util.List;
 
 import redis.clients.jedis.Protocol.Command;
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
-import redis.clients.util.RedisInputStream;
-import redis.clients.util.RedisOutputStream;
-import redis.clients.util.SafeEncoder;
+import redis.clients.util.*;
 
 public class Connection {
   
@@ -100,6 +96,15 @@ public class Connection {
       }
     }
 
+    protected void read(ReplyOutputStream stream) {
+      try {
+        protocol.read(inputStream, stream);
+      } catch (JedisConnectionException e) {
+        disconnect();
+        throw e;
+      }
+    }
+
     public void connect() {
         if (!isConnected()) {
             try {
@@ -158,6 +163,12 @@ public class Connection {
         flush();
         pipelinedCommands--;
         return (byte[]) read();
+    }
+
+    public void getStreamReply(ReplyOutputStream stream) {
+      flush();
+      pipelinedCommands--;
+      read(stream);
     }
 
     public Long getIntegerReply() {

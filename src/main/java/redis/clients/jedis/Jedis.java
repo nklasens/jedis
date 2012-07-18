@@ -183,17 +183,24 @@ public class Jedis extends BinaryJedis implements JedisCommands {
      * @return Multi bulk reply
      */
     public Set<String> keys(final String pattern) {
-        checkIsInMulti();
-        client.keys(pattern);
-        String build = BuilderFactory.STRING
-                .build(client.getBinaryBulkReply());
-        final Set<String> result = new HashSet<String>();
-        StringTokenizer tokenize = new StringTokenizer(build);
-        while (tokenize.hasMoreTokens()) {
-          String key = (String) tokenize.nextToken();
-          result.add(key);
-        }
-        return result;
+      checkIsInMulti();
+      client.keys(pattern);
+      return BuilderFactory.STRING_SET
+              .build(client.getBinaryMultiBulkReply());
+    }
+
+    public Set<String> keysVersion1(final String pattern) {
+      checkIsInMulti();
+      client.keys(pattern);
+      String build = BuilderFactory.STRING
+              .build(client.getBinaryBulkReply());
+      final Set<String> result = new HashSet<String>();
+      StringTokenizer tokenize = new StringTokenizer(build);
+      while (tokenize.hasMoreTokens()) {
+        String key = (String) tokenize.nextToken();
+        result.add(key);
+      }
+      return result;
     }
 
     /**

@@ -69,7 +69,7 @@ public class BinaryClient extends Connection {
     }
 
     public void quit() {
-        db = 0;
+//        db = 0;
         sendCommand(QUIT);
     }
 
@@ -707,7 +707,7 @@ public class BinaryClient extends Connection {
     }
 
     public void disconnect() {
-        db = 0;
+//        db = 0;
         super.disconnect();
     }
 }
