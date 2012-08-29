@@ -16,9 +16,7 @@
 
 package redis.clients.util;
 
-import java.io.FilterInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 import redis.clients.jedis.exceptions.JedisConnectionException;
 import redis.clients.jedis.exceptions.JedisException;
@@ -102,6 +100,19 @@ public class RedisInputStream extends FilterInputStream {
         }
         final int length = Math.min(limit - count, len);
         System.arraycopy(buf, count, b, off, length);
+        count += length;
+        return length;
+    }
+
+    public int read(OutputStream out, int off, int len) throws IOException {
+        if (count == limit) {
+            fill();
+            if (limit == -1)
+                return -1;
+        }
+        final int length = Math.min(limit - count, len);
+        out.write(buf, count, length);
+        
         count += length;
         return length;
     }

@@ -109,7 +109,7 @@ public class Connection {
         if (!isConnected()) {
             try {
                 socket = new Socket();
-                socket.connect(new InetSocketAddress(connectionInfo.getHost(),connectionInfo.getPort()), connectionInfo.getTimeout());
+                socket.connect(connectionInfo.getInetSocketAddress(), connectionInfo.getTimeout());
                 socket.setSoTimeout(connectionInfo.getTimeout());
                 outputStream = new RedisOutputStream(socket.getOutputStream());
                 inputStream = new RedisInputStream(socket.getInputStream());

@@ -1,5 +1,8 @@
 package redis.clients.jedis;
 
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+
 public class ConnectionInfo {
 
   private String host;
@@ -7,6 +10,7 @@ public class ConnectionInfo {
   private int timeout;
   private String password;
   private int database;
+  private InetSocketAddress inetSocketAddress;
 
   public ConnectionInfo(String host) {
     this(host, Protocol.DEFAULT_PORT);
@@ -38,6 +42,8 @@ public class ConnectionInfo {
     this.timeout = timeout > 0 ? timeout : Protocol.DEFAULT_TIMEOUT;
     this.password = password;
     this.database = database >= 0 ? database : Protocol.DEFAULT_DATABASE;
+
+    this.inetSocketAddress = new InetSocketAddress(host, port);
   }
   
   public String getHost() {
@@ -59,7 +65,11 @@ public class ConnectionInfo {
   public int getDatabase() {
     return database;
   }
-  
+
+  public SocketAddress getInetSocketAddress() {
+    return inetSocketAddress;
+  }
+
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -91,5 +101,4 @@ public class ConnectionInfo {
   public String toString() {
     return host + ":" + port;
   }
-
 }
